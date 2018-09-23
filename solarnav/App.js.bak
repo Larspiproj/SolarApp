@@ -1,0 +1,46 @@
+import React, { Component } from 'react';
+import { Button, StyleSheet, Text, View } from 'react-native';
+import { createStackNavigator } from 'react-navigation';
+
+import Solar from '/home/user/React/solarnav/screens/DataScreen';
+
+class HomeScreen extends Component {
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text>Home Screen</Text>
+        <Button
+          onPress={() => {Solar}}
+          title="Request Data"
+        />
+      </View>
+    );
+  }
+}
+
+
+const RootStack = createStackNavigator(
+  {
+    Home: HomeScreen,
+    //Data: DataScreen,
+  },
+  {
+    initialRouteName: 'Home',  
+  }
+
+);
+
+export default class App extends Component {
+    render() {
+      return <RootStack />;  
+    }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'lightgrey',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
