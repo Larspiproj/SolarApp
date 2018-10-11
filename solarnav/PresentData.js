@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { Alert, Button, FlatList, ActivityIndicator, StyleSheet, Text, View }
+import { AsyncStorage, Alert, Button, FlatList, ActivityIndicator, StyleSheet, Text, View }
   from 'react-native';
-//import { createBottomTabNavigator } from 'react-navigation';
 
 
 class FlatListItem extends Component {
@@ -24,8 +23,6 @@ class FlatListItem extends Component {
   }
 }
 
-//const API_URL = "";
-
 class PresentData extends Component {
 
   constructor(props) {
@@ -33,77 +30,51 @@ class PresentData extends Component {
     this.state={
       isloading: true,
       dataSource: null,
+      refreshing: false,
     }
   }
   componentDidMount() {
-    console.log('componentDidMount'); 
-    this._onPress();
-    /*
-    return fetch(this.props.API_URL)
-       //fetch('http://192.168.1.109:5000/solar')
-       .then((response) => response.json())
-       .then((responseJson) => {
-       //return responseJson.solar_data;
-
-       this.setState({
-           isLoading: false,
-           dataSource: responseJson.solar_data  
-       }, function() {
-           Alert.alert(
-           "New Data Recieved",
-           //"Data - " + JSON.stringify(responseJson)
-           ) 
-       });
-    })
-    .catch((error) => {
-    console.error(error);
-    });
-    */
+    console.log('PresentData componentDidMount'); 
+    this._fetchData();
   }
 
+  componentWillUpdate() {
+    console.log('PresentData componentWillUpdate')
+  }
   componentDidUpdate() {
-    console.log('componentDidUpdate');  
+    console.log('PresentData componentDidUpdate');  
   }
 
-  _onPress = async() => {
+  _fetchData = async() => {
     try {
-        let response = await fetch(this.props.API_URL);
+        const API_STEM = await AsyncStorage.getItem('API_STEM');
+        let address = `${API_STEM}/solar`;
+        console.log("Address from AsyncStorage: ", address);
+        let response = await fetch(address);
         let responseJson = await response.json();
 
         this.setState({
         isLoading: false,
-        dataSource: responseJson.solar_data    
+        dataSource: responseJson.solar_data,
+        refreshing: false,
         }, function() {
             Alert.alert("New Data Recieved"); 
         });
 
     } catch(error) {
         console.error(error);    
+        Alert.alert("Check address in settings.");
     }
   }
-  /*
-  _onPress=() => {
-     fetch(this.props.API_URL)
-     //fetch('http://192.168.1.109:5000/solar')
-    .then((response) => response.json())
-    .then((responseJson) => {
-      //return responseJson.solar_data;
 
-      this.setState({
-        isLoading: false,
-        dataSource: responseJson.solar_data  
-      }, function() {
-         Alert.alert(
-          "New Data Recieved",
-          //"Data - " + JSON.stringify(responseJson)
-        ) 
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  handleRefresh = () => {
+    this.setState({
+      refreshing: true,  
+    },
+    () => {
+      this._fetchData();  
+    });  
   }
-  */
 
   render() {
 
@@ -120,6 +91,8 @@ class PresentData extends Component {
           <FlatList
             data={this.state.dataSource}
             keyExtractor={(item, index) => index.toString()}
+            refreshing={this.state.refreshing}
+            onRefresh={this.handleRefresh}
             renderItem={({item, index}) => {
               return (
                 <FlatListItem
@@ -130,12 +103,6 @@ class PresentData extends Component {
            }}
            >
           </FlatList>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Request Data"
-            onPress={() => this._onPress()}
-          />
         </View>
       </View>
     );  
@@ -179,3 +146,12 @@ const styles = StyleSheet.create({
 });
 
 export default PresentData;
+
+/*
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Request Data"
+            onPress={() => this._fetchData()}
+          />
+        </View>
+*/

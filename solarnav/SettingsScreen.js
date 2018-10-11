@@ -13,19 +13,16 @@ class SettingsScreen extends Component {
   constructor(props) {
     super(props);
     this.state= {
-      address: ''  
+      API_STEM: 'http://192.168.1.109:5000'  
+      //address: ''
     }  
   }
 
   componentDidMount() {
     console.log("Settings Did Mount");
-    AsyncStorage.getItem(
-      'address'
-    ).then(address => {
-      alert("After Mount: ", address);  
-    }
-    )
   }
+
+  /*
   componentDidUpdate() {
     console.log("Settings Did Update");
     AsyncStorage.getItem(
@@ -35,27 +32,27 @@ class SettingsScreen extends Component {
     }
     )
   }
+  */
 
   submit=() => {
-    const {address} = this.state;
-    if(address=="") {
-      this.setState({Error: "Please provide address"});
+    const {API_STEM} = this.state;
+    if(API_STEM=="") {
+      this.setState({Message: "Please provide address"});
     }else{
-      this.setState({Error: "Adress submitted successfully"});
+      this.setState({Message: "Adress submitted successfully"});
     }
     Keyboard.dismiss();
 
-    AsyncStorage.setItem('address', address);
+    AsyncStorage.setItem('API_STEM', API_STEM);
 
 
-    console.log(address);
-    console.log(typeof address);
+    console.log(API_STEM);
   }
 
-  displayAddress = async() => {
+  displayAPI_STEM = async() => {
     try {
-      let address = await AsyncStorage.getItem('address');
-       alert(address);  
+      let API_STEM = await AsyncStorage.getItem('API_STEM');
+       alert(API_STEM);  
     }
 
     catch(error) {
@@ -67,13 +64,16 @@ class SettingsScreen extends Component {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>
-        {this.state.Error}
+        {this.state.Message}
         </Text> 
         <TextInput
         placeholder="enter address"
+        value={this.state.API_STEM}
+        textContentType='URL'
+        underlineColorAndroid='transparent'
         style={styles.inputText}
         onChangeText= {
-          address => this.setState({address})  
+          API_STEM => this.setState({API_STEM})  
         }
         />
 
@@ -84,7 +84,7 @@ class SettingsScreen extends Component {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.submit}
-        onPress={this.displayAddress}
+        onPress={this.displayAPI_STEM}
         >
         <Text style={styles.submitText}>Display address</Text>
         </TouchableOpacity>
