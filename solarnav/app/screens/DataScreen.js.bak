@@ -2,13 +2,12 @@ import React, { Component } from 'react';
 import { AsyncStorage, Alert, Button, FlatList, ActivityIndicator, StyleSheet, Text, View }
   from 'react-native';
 
-
 class FlatListItem extends Component {
   render() {
     return (
       <View style={{
         flex: 1,
-        backgroundColor: this.props.index % 2 == 0 ? 'green' : 'grey'  
+        backgroundColor: this.props.index % 2 == 0 ? 'grey' : 'green'  
       }}>
         <View style={styles.rowsContainer}>
           <Text style={[styles.flatListItem, styles.param]}>
@@ -23,7 +22,7 @@ class FlatListItem extends Component {
   }
 }
 
-class PresentData extends Component {
+class DataScreen extends Component {
 
   constructor(props) {
     super(props);
@@ -31,11 +30,21 @@ class PresentData extends Component {
       isloading: true,
       dataSource: null,
       refreshing: false,
+      header: 'Swipe Down to refresh'
     }
   }
   componentDidMount() {
-    console.log('PresentData componentDidMount'); 
-    this._fetchData();
+    console.log('PresentData componentDidMount');
+    this._loadInitialState().done();
+    //this._fetchData();
+    /*
+    if (!API_STEM) {
+      Alert.alert("Please provide address"); 
+      {this.props.navigation.navigate('Settings')} 
+    } else {
+      this._fetchData();
+      };
+    */
   }
 
   componentWillUpdate() {
@@ -45,25 +54,53 @@ class PresentData extends Component {
     console.log('PresentData componentDidUpdate');  
   }
 
+  _loadInitialState = async() => {
+    const API_STEM = await AsyncStorage.getItem('API_STEM');
+    if (!API_STEM) {
+      Alert.alert("Please specify address");
+      this.props.navigation.navigate('Settings')  
+    } else {
+      this._fetchData()  
+    }
+  }
+
   _fetchData = async() => {
     try {
+        const time = new Date().toTimeString();
         const API_STEM = await AsyncStorage.getItem('API_STEM');
+        if (!API_STEM) {
+          this.error = "RELOAD and check address in SETTINGS";
+          console.error((this.error));
+          Alert.alert("Please specify address");
+          return;  
+        } else {
+          this.error = null;
+         }
         let address = `${API_STEM}/solar`;
         console.log("Address from AsyncStorage: ", address);
         let response = await fetch(address);
+        //console.log("Response: ", response);
         let responseJson = await response.json();
 
         this.setState({
         isLoading: false,
         dataSource: responseJson.solar_data,
+        header: [`Last data received '${time}
+          \xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Swipe to refresh`],
         refreshing: false,
         }, function() {
-            Alert.alert("New Data Recieved"); 
+            //Alert.alert("New Data Recieved"); 
         });
 
     } catch(error) {
-        console.error(error);    
-        Alert.alert("Check address in settings.");
+        console.error((error));
+        setTimeout(function()
+          {Alert.alert("RELOAD and check address in SETTINGS")}, 1000);
+        //let str = JSON.stringify(error);
+        //console.log(typeof error); 
+        //Alert.alert("Check address in settings.");
+        //if (error.slice(0,23) == "Network request failed") { 
+        //Alert.alert("Check address in settings.")};
     }
   }
 
@@ -87,6 +124,9 @@ class PresentData extends Component {
     }
     return (
       <View style={styles.container}>
+        <View style={styles.upperContainer}>
+          <Text>{this.state.header}</Text>
+        </View>
         <View style={styles.flatListContainer}>
           <FlatList
             data={this.state.dataSource}
@@ -113,14 +153,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 25,
+    backgroundColor: 'grey',
   },
-  buttonContainer: {
+  upperContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center'
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2',  
   },
   flatListContainer: {
-    flex: 7,
+    flex: 9,
+    //backgroundColor: 'red',
   },
   flatListItem: {
     color: "white",
@@ -145,9 +188,14 @@ const styles = StyleSheet.create({
   }
 });
 
-export default PresentData;
+export default DataScreen;
 
 /*
+  buttonContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
         <View style={styles.buttonContainer}>
           <Button
             title="Request Data"
